@@ -66,6 +66,12 @@
   </div>
 
   <div class="panel">
+    <h2 style="margin-top:0;font-size:16px">Pipeline guide</h2>
+    <p class="sub" style="margin-top:-8px">Full install + QIIME 2 command walkthrough for this dataset.</p>
+    <ul class="filelist" id="pipelinelist"></ul>
+  </div>
+
+  <div class="panel">
     <h2 style="margin-top:0;font-size:16px">Files</h2>
     <ul class="filelist" id="filelist"></ul>
   </div>
@@ -76,29 +82,37 @@
 const PASSWORD_HASH = "f39dc5939cbaf61be63258fb86273afa30273d4e2297f6bac3d55a62a6057f55";
 
 const files = [
-  "1_S146_R1_001.fq","1_S146_R2_001.fq",
-  "3_S148_R1_001.fq","3_S148_R2_001.fq",
-  "5_S150_R1_001.fq","5_S150_R2_001.fq",
-  "11_S156_R1_001.fq","11_S156_R2_001.fq",
-  "12_S157_R1_001.fq","12_S157_R2_001.fq",
-  "14_S159_R1_001.fq","14_S159_R2_001.fq"
+  { name: "1_S146_R1_001.fastq.gz", path: "data/1_S146_R1_001.fastq.gz" },
+  { name: "1_S146_R2_001.fastq.gz", path: "data/1_S146_R2_001.fastq.gz" },
+  { name: "3_S148_R1_001.fastq.gz", path: "data/3_S148_R1_001.fastq.gz" },
+  { name: "3_S148_R2_001.fastq.gz", path: "data/3_S148_R2_001.fastq.gz" },
+  { name: "5_S150_R1_001.fastq.gz", path: "data/5_S150_R1_001.fastq.gz" },
+  { name: "5_S150_R2_001.fastq.gz", path: "data/5_S150_R2_001.fastq.gz" },
+  { name: "11_S156_R1_001.fastq.gz", path: "data/11_S156_R1_001.fastq.gz" },
+  { name: "11_S156_R2_001.fastq.gz", path: "data/11_S156_R2_001.fastq.gz" },
+  { name: "12_S157_R1_001.fastq.gz", path: "data/12_S157_R1_001.fastq.gz" },
+  { name: "12_S157_R2_001.fastq.gz", path: "data/12_S157_R2_001.fastq.gz" },
+  { name: "14_S159_R1_001.fastq.gz", path: "data/14_S159_R1_001.fastq.gz" },
+  { name: "14_S159_R2_001.fastq.gz", path: "data/14_S159_R2_001.fastq.gz" }
 ];
+
+const pipelineFile = { name: "PIPELINE.md", path: "PIPELINE.md" };
 
 let unlocked = false;
 
-function renderFiles(){
-  const list = document.getElementById("filelist");
+function renderOneList(containerId, items){
+  const list = document.getElementById(containerId);
   list.innerHTML = "";
-  files.forEach(name => {
+  items.forEach(file => {
     const li = document.createElement("li");
     const nameSpan = document.createElement("span");
-    nameSpan.textContent = name;
+    nameSpan.textContent = file.name;
     li.appendChild(nameSpan);
     if (unlocked){
       const a = document.createElement("a");
       a.className = "dl";
-      a.href = "data/" + name;
-      a.setAttribute("download", name);
+      a.href = file.path;
+      a.setAttribute("download", file.name);
       a.textContent = "Download";
       li.appendChild(a);
     } else {
@@ -109,6 +123,11 @@ function renderFiles(){
     }
     list.appendChild(li);
   });
+}
+
+function renderFiles(){
+  renderOneList("filelist", files);
+  renderOneList("pipelinelist", [pipelineFile]);
 }
 
 async function sha256(text){

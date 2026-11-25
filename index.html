@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microbiome Training — Demo Dataset</title>
+<style>
+  :root{
+    --bg:#faf8f4; --surface:#ffffff; --ink:#1f2a24; --muted:#5b6b61; --line:#c9d3cb;
+    --accent:#2f6f5e; --accent-soft:#dcebe5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15201b; --surface:#1c2822; --ink:#eaf1ec; --muted:#9fb3a7; --line:#35453d; --accent:#5fbb9f; --accent-soft:#24362f; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:32px 16px 60px}
+  .wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+  h1{font-size:clamp(22px,5vw,28px);margin:0}
+  .sub{color:var(--muted);font-size:14.5px;margin:0;max-width:65ch}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px clamp(14px,4vw,28px)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+  .filelist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .filelist li{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:var(--accent-soft);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px}
+  .locked{color:var(--muted);font-size:12px}
+  .dl{color:var(--accent);font-weight:600;text-decoration:none;font-size:12.5px}
+  .gate{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input[type=password]{flex:1;min-width:180px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:14px}
+  button{padding:10px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer}
+  button:hover{opacity:.9}
+  .msg{font-size:13px;color:var(--accent);min-height:18px}
+  .msg.err{color:#b03a3a}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Microbiome Training — Demo Dataset</h1>
+    <p class="sub">16S rRNA amplicon sequencing demo: 6 samples (Dairy vs. Meat, 3 replicates each), 12 paired-end FASTQ files. File names are visible to everyone; downloads unlock with the training password.</p>
+  </div>
+
+  <div class="panel">
+    <h2 style="margin-top:0;font-size:16px">Sample metadata</h2>
+    <table>
+      <thead><tr><th>sample-id</th><th>Treatment</th><th>Replication</th></tr></thead>
+      <tbody>
+        <tr><td>1_S146_10</td><td>Dairy</td><td>1</td></tr>
+        <tr><td>3_S148_29</td><td>Dairy</td><td>2</td></tr>
+        <tr><td>5_S150_30</td><td>Dairy</td><td>3</td></tr>
+        <tr><td>11_S156_1</td><td>Meat</td><td>1</td></tr>
+        <tr><td>12_S157_2</td><td>Meat</td><td>2</td></tr>
+        <tr><td>14_S159_4</td><td>Meat</td><td>3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2 style="margin-top:0;font-size:16px">Unlock downloads</h2>
+    <p class="sub" style="margin-top:-8px">Enter the password you were given to reveal download links below.</p>
+    <div class="gate">
+      <input id="pw" type="password" placeholder="Password" autocomplete="off">
+      <button onclick="unlock()">Unlock</button>
+    </div>
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <div class="panel">
+    <h2 style="margin-top:0;font-size:16px">Files</h2>
+    <ul class="filelist" id="filelist"></ul>
+  </div>
+</div>
+
+<script>
+// SHA-256 hash of the training password (change this and regenerate the hash to set your own).
+const PASSWORD_HASH = "f39dc5939cbaf61be63258fb86273afa30273d4e2297f6bac3d55a62a6057f55";
+
+const files = [
+  "1_S146_R1_001.fq","1_S146_R2_001.fq",
+  "3_S148_R1_001.fq","3_S148_R2_001.fq",
+  "5_S150_R1_001.fq","5_S150_R2_001.fq",
+  "11_S156_R1_001.fq","11_S156_R2_001.fq",
+  "12_S157_R1_001.fq","12_S157_R2_001.fq",
+  "14_S159_R1_001.fq","14_S159_R2_001.fq"
+];
+
+let unlocked = false;
+
+function renderFiles(){
+  const list = document.getElementById("filelist");
+  list.innerHTML = "";
+  files.forEach(name => {
+    const li = document.createElement("li");
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = name;
+    li.appendChild(nameSpan);
+    if (unlocked){
+      const a = document.createElement("a");
+      a.className = "dl";
+      a.href = "data/" + name;
+      a.setAttribute("download", name);
+      a.textContent = "Download";
+      li.appendChild(a);
+    } else {
+      const span = document.createElement("span");
+      span.className = "locked";
+      span.textContent = "🔒 locked";
+      li.appendChild(span);
+    }
+    list.appendChild(li);
+  });
+}
+
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+async function unlock(){
+  const pw = document.getElementById("pw").value;
+  const msg = document.getElementById("msg");
+  const hash = await sha256(pw);
+  if (hash === PASSWORD_HASH){
+    unlocked = true;
+    msg.textContent = "Unlocked — downloads are now available below.";
+    msg.className = "msg";
+  } else {
+    msg.textContent = "Incorrect password.";
+    msg.className = "msg err";
+  }
+  renderFiles();
+}
+
+renderFiles();
+</script>
+</body>
+</html>
